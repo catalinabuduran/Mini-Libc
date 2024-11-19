@@ -1,0 +1,71 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <internal/mm/mem_list.h>
+#include <internal/types.h>
+#include <internal/essentials.h>
+#include <sys/mman.h>
+#include <string.h>
+#include <stdlib.h>
+
+struct mem_list *allocated_blocks = NULL;
+
+void *malloc(size_t size)
+{
+	/* TODO: Implement malloc(). */
+	return mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+}
+
+void *calloc(size_t nmemb, size_t size)
+{
+	/* TODO: Implement calloc(). */
+	size_t total_size = nmemb * size;
+	void *iter = malloc(total_size);
+	if (iter != NULL) {
+	   unsigned char *each_byte = (unsigned char*)iter;
+	   for(size_t i = 0; i < total_size; i++)
+		each_byte[i] = 0;
+	}
+	return iter;
+}
+
+void free(void *ptr)
+{
+	/* TODO: Implement free(). */
+	 if (ptr == NULL) {
+        return;
+    }
+
+    struct mem_list *current = allocated_blocks;
+
+    while (current != NULL) {
+        if (current->start == ptr) {
+            if (current->prev != NULL) {
+                current->prev->next = current->next;
+            } else {
+                allocated_blocks = current->next;
+            }
+
+            if (current->next != NULL) {
+                current->next->prev = current->prev;
+            }
+
+            munmap(ptr, current->len);
+
+            
+            break;
+        }
+
+        current = current->next;
+    }
+}
+
+void *realloc(void *ptr, size_t size){
+	/* TODO: Implement realloc(). */
+}
+
+void *reallocarray(void *ptr, size_t nmemb, size_t size)
+{
+	/* TODO: Implement reallocarray(). */
+	return NULL;
+}
